@@ -1,0 +1,111 @@
+@startuml diagrama_agente
+
+title Abstract Factory - Servicio de agentes
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "Productos abstractos" {
+    abstract class Consulta {
+        {abstract} +ejecutar(pregunta: str): str
+        {abstract} +mostrar_info(): None
+    }
+
+    abstract class Notificacion {
+        {abstract} +enviar(mensaje: str): str
+        {abstract} +mostrar_info(): None
+    }
+
+    abstract class Reporte {
+        {abstract} +generar(datos: str): str
+        {abstract} +mostrar_info(): None
+    }
+}
+
+package "Productos concretos" {
+    class ConsultaGPT {
+        +modelo = "gpt"
+        +ejecutar(pregunta: str): str
+        +mostrar_info(): None
+    }
+
+    class ConsultaAnthropic {
+        +modelo = "anthropic"
+        +ejecutar(pregunta: str): str
+        +mostrar_info(): None
+    }
+
+    class NotificacionModelo {
+        +modelo: str
+        +__init__(modelo: str)
+        +enviar(mensaje: str): str
+        +mostrar_info(): None
+    }
+
+    class ReporteModelo {
+        +modelo: str
+        +__init__(modelo: str)
+        +generar(datos: str): str
+        +mostrar_info(): None
+    }
+}
+
+package "Fábricas" {
+    abstract class FabricaAgente {
+        {abstract} +crear_consulta(): Consulta
+        {abstract} +crear_notificacion(): Notificacion
+        {abstract} +crear_reporte(): Reporte
+    }
+
+    class FabricaGPT {
+        +modelo = "gpt"
+        +crear_consulta(): ConsultaGPT
+        +crear_notificacion(): NotificacionModelo
+        +crear_reporte(): ReporteModelo
+    }
+
+    class FabricaAnthropic {
+        +modelo = "anthropic"
+        +crear_consulta(): ConsultaAnthropic
+        +crear_notificacion(): NotificacionModelo
+        +crear_reporte(): ReporteModelo
+    }
+}
+
+package "Servicio" {
+    class Cliente {
+        -_fabrica: FabricaAgente
+        +__init__(fabrica: FabricaAgente)
+        +consultar(pregunta: str): str
+        +reporte(datos: str): str
+        +notificar(mensaje: str): str
+    }
+}
+
+Consulta <|-- ConsultaGPT
+Consulta <|-- ConsultaAnthropic
+Notificacion <|-- NotificacionModelo
+Reporte <|-- ReporteModelo
+
+FabricaAgente <|-- FabricaGPT
+FabricaAgente <|-- FabricaAnthropic
+
+FabricaGPT ..> ConsultaGPT : crea
+FabricaGPT ..> NotificacionModelo : crea
+FabricaGPT ..> ReporteModelo : crea
+FabricaAnthropic ..> ConsultaAnthropic : crea
+FabricaAnthropic ..> NotificacionModelo : crea
+FabricaAnthropic ..> ReporteModelo : crea
+
+Cliente o-- FabricaAgente : utiliza
+Cliente ..> Consulta : solicita
+Cliente ..> Notificacion : solicita
+Cliente ..> Reporte : solicita
+
+note right of FabricaAgente
+  Fábrica abstracta que crea
+  una familia de productos
+  relacionados.
+end note
+
+@enduml
